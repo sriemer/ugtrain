@@ -1,5 +1,5 @@
-ugtrain (0.3) trusty; urgency=low
+ugtrain (0.3-1) trusty; urgency=low
 
   * first packaging for x86 and x86_64
 
- -- Sebastian Parschauer <s.parschauer@gmx.de>  Fri, 01 Jan 2016 23:37:01 +0100
+ -- Sebastian Parschauer <s.parschauer@gmx.de>  Sat, 02 Jan 2016 07:14:56 +0100
