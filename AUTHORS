@@ -11,5 +11,6 @@ glc and scanmem.
 The autogen.sh has been taken from warzone2100 as it is sophisticated.
 The ptrace handling has been implemented inspired by libgcheater. The
 env_append() function has been taken from glc. And the code in the
-maps_l.cpp file has been taken from scanmem for ASLR/PIC/PIE support.
+maps_l.c and .travis.yml files has been taken from scanmem for
+ASLR/PIC/PIE and Travis-CI support.
 C list processing has been taken from the Linux kernel.

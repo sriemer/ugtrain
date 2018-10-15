@@ -1,0 +1,45 @@
+language: cpp
+sudo: required
+
+services:
+  - docker
+
+env:
+  global:
+  # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+  #   via the "travis encrypt" command using the project repo's public key
+    secure: ItjHOOuoQ7/FOiU/3xj4bFBySFcOaYCeLaHobwbX4pkR1EuOeA3RGgL556ZQOdb/LpOkouklhdSWbob4oVksMOcbSQ2uN74NNRQJHXpHWrzjcpalsM34XCEn1e80LuEVFUyjUIyz7NAAbqxpEP2gMh6mPU2ZX+ISF4RVoyj2WLgZDqFcqWJDLd4S/jn3C6OYjIRu0e5eTWMqfffxd1vM7mHIPRwesr+HVgcbluatw54l9SwQZYUbcAkS1eBw3HYQW4NgVirZ8Wq58V/AiziLIKGq/JpFEWpKmKk1Ps0TDsO1O9egYfR2vR+Oxj9F5LqOgBfEwQzdz4lzLjynbi/QcjYGCe245TEaRQBnDicS/Jisv7Pa2HJ+nIYfzkve8iVP/ndLnOlcLCwsSkbx58gmT6DSd72nPRvJExHvsYvVJEej2otJYPpigFzVVgmyErVsh/dxIm/ketSXNLEzClF9/KpJB/HbPqh92HcvDiZ+zabTnqCz/x2oQqPSfk98oOdKwGQDElSNgxFp5hohKKqjm1xneMZ9Aw020uW2CD+eedpi+wn8LGby+3d6iQEiS8g640kT23XT4LjIKAMpzLjk4L2ZKJNY29OSjt69d3a0SG4RAsw3k8Y5FyGFc6VDKn660NaQyhoRkR2YfvpGlDO9+LeRpV1dBAX/MiDIkE1/D0o=
+  # Docker Ubuntu distribution and project directory in Docker container
+  - DUDIST="bionic"
+  - DPRJDIR="/ugtrain"
+  - DEXEC="docker exec ${DUDIST} /bin/bash -c"
+
+before_install:
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+addons:
+  apt:
+    packages:
+    - gcc g++ binutils
+  # Coverity scan add-on, fires only when pushing to the `coverity_scan` branch
+  coverity_scan:
+    project:
+      name: "ugtrain/ugtrain"
+      description: "Build submitted via Travis CI"
+    notification_email: s.parschauer@gmx.de
+    build_command_prepend: "./autogen.sh && ./configure"
+    build_command: "make"
+    branch_pattern: coverity_scan
+
+script:
+  - if [ "${COVERITY_SCAN_BRANCH}" == 1 ]; then exit ; fi
+  - docker pull ubuntu:${DUDIST}
+  # mount the project git directory to the container and
+  # use it as working directory
+  - docker run -t -d --name="${DUDIST}" -v /home/travis/build/${PROJECT_NAME}:${DPRJDIR} -w ${DPRJDIR} ubuntu:${DUDIST} /bin/bash
+  - docker ps
+  - ${DEXEC} "apt-get update && apt-get upgrade -y"
+  - ${DEXEC} "apt-get install -y git gcc g++ binutils libtool make"
+  - ${DEXEC} "g++ --version"
+  - ${DEXEC} "./autogen.sh && ./configure"
+  - ${DEXEC} "make CFLAGS='-O2 -fsanitize=address,undefined'"
